@@ -32,10 +32,17 @@ function fetchAndServe(req, res) {
       req.params.originType = origin.headers['content-type'] || '';
       req.params.originSize = buffer.length;
 
-      if (shouldCompress(req)) {
-        compress(req, res, buffer);
-      } else {
-        bypass(req, res, buffer);
+      try {
+        if (shouldCompress(req)) {
+          compress(req, res, buffer);
+        } else {
+          bypass(req, res, buffer);
+        }
+      } catch (e) {
+        // Fallback to serving the original image
+        res.setHeader('content-type', origin.headers['content-type']);
+        res.setHeader('content-length', buffer.length);
+        res.status(200).send(buffer);
       }
     }
   );
