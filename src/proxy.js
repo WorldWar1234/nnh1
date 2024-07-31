@@ -1,12 +1,11 @@
 const request = require('request');
 const pick = require('lodash').pick;
 const shouldCompress = require('./shouldCompress');
-const redirect = require('./redirect');
 const compress = require('./compress');
 const bypass = require('./bypass');
 const copyHeaders = require('./copyHeaders');
 
-function handleRequest(req, res) {
+function fetchAndServe(req, res) {
   request.get(
     req.params.url,
     {
@@ -25,7 +24,7 @@ function handleRequest(req, res) {
     },
     (err, origin, buffer) => {
       if (err || origin.statusCode >= 400) {
-        return redirect(req, res);
+        return res.status(origin.statusCode).end();
       }
 
       copyHeaders(origin, res);
@@ -42,4 +41,4 @@ function handleRequest(req, res) {
   );
 }
 
-module.exports = handleRequest;
+module.exports = fetchAndServe;
