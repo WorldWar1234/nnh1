@@ -24,7 +24,7 @@ function fetchAndServe(req, res) {
     },
     (err, origin, buffer) => {
       if (err || origin.statusCode >= 400) {
-        return res.status(origin.statusCode).end();
+        return redirect(req, res); // Redirect to the original URL
       }
 
       copyHeaders(origin, res);
