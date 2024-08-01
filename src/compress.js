@@ -13,4 +13,17 @@ function compress(req, res, input) {
     .toBuffer((err, output, info) => {
       if (err || !info || res.headersSent) {
         // Fallback to serving the original image
-        res.setHeader
+        res.setHeader('content-type', req.params.originType);
+        res.setHeader('content-length', input.length);
+        return res.status(200).send(input);
+      }
+
+      res.setHeader('content-type', `image/${format}`);
+      res.setHeader('content-length', info.size);
+      res.setHeader('x-original-size', req.params.originSize);
+      res.setHeader('x-bytes-saved', req.params.originSize - info.size);
+      res.status(200).send(output);
+    });
+}
+
+module.exports = compress;
