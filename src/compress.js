@@ -1,9 +1,9 @@
 const sharp = require('sharp');
 
-function compress(req, res, input) {
+function compress(req, res) {
   const format = req.params.webp ? 'webp' : 'jpeg';
 
-  sharp(input)
+  sharp(req.params.buffer)
     .grayscale(req.params.grayscale)
     .toFormat(format, {
       quality: req.params.quality,
@@ -12,17 +12,17 @@ function compress(req, res, input) {
     })
     .toBuffer((err, output, info) => {
       if (err || !info || res.headersSent) {
-        // Fallback to serving the original image
+        // If there's an error or the image cannot be compressed, send the original image
         res.setHeader('content-type', req.params.originType);
-        res.setHeader('content-length', input.length);
-        return res.status(200).send(input);
+        res.setHeader('content-length', req.params.originSize);
+        res.status(200).send(req.params.buffer);
+      } else {
+        res.setHeader('content-type', `image/${format}`);
+        res.setHeader('content-length', info.size);
+        res.setHeader('x-original-size', req.params.originSize);
+        res.setHeader('x-bytes-saved', req.params.originSize - info.size);
+        res.status(200).send(output);
       }
-
-      res.setHeader('content-type', `image/${format}`);
-      res.setHeader('content-length', info.size);
-      res.setHeader('x-original-size', req.params.originSize);
-      res.setHeader('x-bytes-saved', req.params.originSize - info.size);
-      res.status(200).send(output);
     });
 }
 
